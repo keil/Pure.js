@@ -1,5 +1,18 @@
 var Pure = Pure || (function() {
 
+  //  ___                 
+  // | __|_ _ _ _ ___ _ _ 
+  // | _|| '_| '_/ _ \ '_|
+  // |___|_| |_| \___/_|  
+
+  function PureError (message) {
+    this.name = 'Pure Error';
+    this.message = message || 'Pure function cannot cause observable effects.';
+    this.stack = (new Error()).stack;
+  }
+  PureError.prototype = Object.create(Error.prototype);
+  PureError.prototype.constructor = PureError;
+
   //__ __ ___ _ __ _ _ __ 
   //\ V  V / '_/ _` | '_ \
   // \_/\_/|_| \__,_| .__/
@@ -40,20 +53,6 @@ var Pure = Pure || (function() {
     return proxy;
   }
 
-  // ___          _ _          ___                 
-  //| _ \_  _ _ _(_) |_ _  _  | __|_ _ _ _ ___ _ _ 
-  //|  _/ || | '_| |  _| || | | _|| '_| '_/ _ \ '_|
-  //|_|  \_,_|_| |_|\__|\_, | |___|_| |_| \___/_|  
-  //                    |__/                       
-
-  function PurityError(message) {
-    this.name = 'PurityError';
-    this.message = message || 'Pure function cannot cause any observable side effects.';
-    this.stack = (new Error()).stack;
-  }
-  PurityError.prototype = Object.create(Error.prototype);
-  PurityError.prototype.constructor = PurityError;
-
   // __  __           _                      
   //|  \/  |___ _ __ | |__ _ _ __ _ _ _  ___ 
   //| |\/| / -_) '  \| '_ \ '_/ _` | ' \/ -_)
@@ -73,7 +72,7 @@ var Pure = Pure || (function() {
      * A trap for Object.setPrototypeOf.
      **/
     this.setPrototypeOf = function(target, prototype) {
-      throw new PurityError();
+      throw new PureError();
     }
 
     /**
@@ -87,7 +86,7 @@ var Pure = Pure || (function() {
      * A trap for Object.preventExtensions.
      **/
     this.preventExtensions = function(target) {
-      throw new PurityError();
+      throw new PureError();
     };
 
     /** 
@@ -101,7 +100,7 @@ var Pure = Pure || (function() {
      * A trap for Object.defineProperty.
      **/
     this.defineProperty = function(target, name, desc) {
-      throw new PurityError();
+      throw new PureError();
     };
 
     /** 
@@ -123,14 +122,14 @@ var Pure = Pure || (function() {
      * A trap for setting property values.
      **/
     this.set = function(target, name, value, receiver) {
-      throw new PurityError();
+      throw new PureError();
     };
 
     /**
      * A trap for the delete operator.
      **/
     this.deleteProperty = function(target, name) {
-      throw new PurityError();
+      throw new PureError();
     };
 
     /** 
@@ -158,7 +157,7 @@ var Pure = Pure || (function() {
       if(target instanceof Pure) {
         return target.apply(wrap(thisArg), wrap(argumentsList))
       } else {
-        throw new PurityError();
+        throw new PureError();
       }
     };
 
@@ -171,7 +170,7 @@ var Pure = Pure || (function() {
         var result = target.apply(wrap(thisArg), wrap(argumentsList));
         return (result instanceof Object) ? result : wrap(thisArg);
       } else {
-        throw new PurityError();
+        throw new PureError();
       }
     }
   }
@@ -243,9 +242,55 @@ var Pure = Pure || (function() {
   Pure.prototype = Object.create(Function.prototype);
   Pure.prototype.constructor = Pure;
 
-  Pure.from = function from(closure) {
-    return recompile(closure, {});
-  }
+  //  __               
+  // / _|_ _ ___ _ __  
+  //|  _| '_/ _ \ '  \ 
+  //|_| |_| \___/_|_|_|
+
+  Object.defineProperty(Pure, "from", {
+    value: function(closure) {
+      return recompile(closure, {});
+    }
+  });
+
+  // _    ___              
+  //(_)__| _ \_  _ _ _ ___ 
+  //| (_-<  _/ || | '_/ -_)
+  //|_/__/_|  \_,_|_| \___|
+
+  Object.defineProperty(Pure, "isPure", {
+    value: function(closure) {
+      return cache.has(closure);
+    }
+  });
+
+  //  ___                 
+  // | __|_ _ _ _ ___ _ _ 
+  // | _|| '_| '_/ _ \ '_|
+  // |___|_| |_| \___/_|  
+
+  Object.defineProperty(Pure, "Error", {
+    value: PureError
+  });
+
+  //                _          
+  //__ _____ _ _ __(_)___ _ _  
+  //\ V / -_) '_(_-< / _ \ ' \ 
+  // \_/\___|_| /__/_\___/_||_|
+
+  Object.defineProperty(Pure, "version", {
+    value: "Pure 0.0.0 (PoC)"
+  });
+
+  // _       ___ _       _           
+  //| |_ ___/ __| |_ _ _(_)_ _  __ _ 
+  //|  _/ _ \__ \  _| '_| | ' \/ _` |
+  // \__\___/___/\__|_| |_|_||_\__, |
+  //                           |___/ 
+
+  Object.defineProperty(Pure, "toString", {
+    value: "[[Pure]]"
+  });
 
   return Pure;
 

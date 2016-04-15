@@ -1,1 +1,0 @@
-var TransparentProxy = TransparentProxy || Proxy;
