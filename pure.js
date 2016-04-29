@@ -321,7 +321,7 @@ var Pure = Pure || (function() {
   /// _/ _ \ ' \(_-<  _| '_| || / _|  _/ _ \ '_|
   //\__\___/_||_/__/\__|_|  \_,_\__|\__\___/_|  
 
-  Object.defineProperty(Observer.prototype, "constructor", {
+  Object.defineProperty(Pure.prototype, "constructor", {
     value: Pure
   });
 
@@ -353,11 +353,11 @@ var Pure = Pure || (function() {
   // \_/\___|_| /__/_\___/_||_|
 
   Object.defineProperty(Pure, "version", {
-    value: "Pure 0.0.0 (PoC)"
+    value: "Pure 0.0.1 (PoC)"
   });
 
   Object.defineProperty(Pure.prototype, "version", {
-    value: "Pure 0.0.0 (PoC)"
+    value: "Pure 0.0.1 (PoC)"
   });
 
   // _       ___ _       _           
