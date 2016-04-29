@@ -209,6 +209,58 @@ var Pure = Pure || (function() {
     }
   }
 
+  // _____                  _____            _           
+  //|  __ \                |  __ \          | |          
+  //| |__) |   _ _ __ ___  | |__) |___  __ _| |_ __ ___  
+  //|  ___/ | | | '__/ _ \ |  _  // _ \/ _` | | '_ ` _ \ 
+  //| |   | |_| | | |  __/ | | \ \  __/ (_| | | | | | | |
+  //|_|    \__,_|_|  \___| |_|  \_\___|\__,_|_|_| |_| |_|
+
+  function Realm(scope) {
+    if(!(this instanceof Realm)) return new Realm(scope);
+
+    for(var name in scope) {
+      this[name] = scope[name];
+    }
+  }
+
+  //              _       _                  
+  // _ __ _ _ ___| |_ ___| |_ _  _ _ __  ___ 
+  //| '_ \ '_/ _ \  _/ _ \  _| || | '_ \/ -_)
+  //| .__/_| \___/\__\___/\__|\_, | .__/\___|
+  //|_|                       |__/|_|        
+
+  Object.defineProperty(Realm, "prototype", {
+    value: Object.create(Object.prototype)
+  });
+
+  //                _               _           
+  // __ ___ _ _  __| |_ _ _ _  _ __| |_ ___ _ _ 
+  /// _/ _ \ ' \(_-<  _| '_| || / _|  _/ _ \ '_|
+  //\__\___/_||_/__/\__|_|  \_,_\__|\__\___/_|  
+
+  Object.defineProperty(Realm.prototype, "constructor", {
+    value: Realm
+  });
+
+  // _       ___ _       _           
+  //| |_ ___/ __| |_ _ _(_)_ _  __ _ 
+  //|  _/ _ \__ \  _| '_| | ' \/ _` |
+  // \__\___/___/\__|_| |_|_||_\__, |
+  //                           |___/ 
+
+  Object.defineProperty(Realm, "toString", {
+    value: function() {
+      return "[[PureRealm]]";
+    }
+  });
+
+  Object.defineProperty(Realm.prototype, "toString", {
+    value: function() {
+      return "[[PureRealm]]";
+    }
+  });
+
   // _____                  ______                _   _             
   //|  __ \                |  ____|              | | (_)            
   //| |__) |   _ _ __ ___  | |__ _   _ _ __   ___| |_ _  ___  _ __  
@@ -401,7 +453,7 @@ var Pure = Pure || (function() {
   //\__|_| \___\__,_|\__\___|_|_\___\__,_|_|_|_|_|
 
   Object.defineProperty(Pure, "createRealm", {
-    value: function() {
+    value: function(scope) {
 
       // create new realm
       var realm = {};
