@@ -354,130 +354,139 @@ var Pure = Pure || (function() {
     } 
   }                                                    
 
-  // ___                ___             _   _          
-  //| _ \_  _ _ _ ___  | __|  _ _ _  __| |_(_)___ _ _  
-  //|  _/ || | '_/ -_) | _| || | ' \/ _|  _| / _ \ ' \ 
-  //|_|  \_,_|_| \___| |_| \_,_|_||_\__|\__|_\___/_||_|
+  function mkPure(realm) {
 
-  function Pure(realm={}, ...parameters) {
-    return define(realm, parameters);
+    // ___                ___             _   _          
+    //| _ \_  _ _ _ ___  | __|  _ _ _  __| |_(_)___ _ _  
+    //|  _/ || | '_/ -_) | _| || | ' \/ _|  _| / _ \ ' \ 
+    //|_|  \_,_|_| \___| |_| \_,_|_||_\__|\__|_\___/_||_|
+
+    function Pure(...parameters) {
+      return define(realm, parameters);
+    }
+
+    //              _       _                  
+    // _ __ _ _ ___| |_ ___| |_ _  _ _ __  ___ 
+    //| '_ \ '_/ _ \  _/ _ \  _| || | '_ \/ -_)
+    //| .__/_| \___/\__\___/\__|\_, | .__/\___|
+    //|_|                       |__/|_|        
+
+    Object.defineProperty(Pure, "prototype", {
+      value: Object.create(Function.prototype)
+    });
+
+    //                _               _           
+    // __ ___ _ _  __| |_ _ _ _  _ __| |_ ___ _ _ 
+    /// _/ _ \ ' \(_-<  _| '_| || / _|  _/ _ \ '_|
+    //\__\___/_||_/__/\__|_|  \_,_\__|\__\___/_|  
+
+    Object.defineProperty(Pure.prototype, "constructor", {
+      value: Pure
+    });
+
+    //  __               
+    // / _|_ _ ___ _ __  
+    //|  _| '_/ _ \ '  \ 
+    //|_| |_| \___/_|_|_|
+
+    Object.defineProperty(Pure, "from", {
+      value: function(closure) {
+        return recompile(realm, closure);
+      }
+    });
+
+    // _    ___              
+    //(_)__| _ \_  _ _ _ ___ 
+    //| (_-<  _/ || | '_/ -_)
+    //|_/__/_|  \_,_|_| \___|
+
+    Object.defineProperty(Pure, "isPure", {
+      value: function(closure) {
+        return cache.has(closure);
+      }
+    });
+
+    // TODO
+    // make also is pure as prototype function
+
+    //                _          
+    //__ _____ _ _ __(_)___ _ _  
+    //\ V / -_) '_(_-< / _ \ ' \ 
+    // \_/\___|_| /__/_\___/_||_|
+
+    Object.defineProperty(Pure, "version", {
+      value: "Pure 0.0.1 (PoC)"
+    });
+
+    Object.defineProperty(Pure.prototype, "version", {
+      value: Pure.version
+    });
+
+    // _       ___ _       _           
+    //| |_ ___/ __| |_ _ _(_)_ _  __ _ 
+    //|  _/ _ \__ \  _| '_| | ' \/ _` |
+    // \__\___/___/\__|_| |_|_||_\__, |
+    //                           |___/ 
+
+    Object.defineProperty(Pure, "toString", {
+      value: function() {
+        return "[[Pure]]";
+      }
+    });
+
+    Object.defineProperty(Pure.prototype, "toString", {
+      value: function() {
+        return "asdfadsf"; // TODO
+      }
+    });
+
+    // ___          _       
+    //| _ \___ __ _| |_ __  
+    //|   / -_) _` | | '  \ 
+    //|_|_\___\__,_|_|_|_|_|
+
+    Object.defineProperty(Pure, "Realm", {
+      value: Realm
+    });
+
+    //                 _       ___          _       
+    // __ _ _ ___ __ _| |_ ___| _ \___ __ _| |_ __  
+    /// _| '_/ -_) _` |  _/ -_)   / -_) _` | | '  \ 
+    //\__|_| \___\__,_|\__\___|_|_\___\__,_|_|_|_|_|
+
+    Object.defineProperty(Pure, "createRealm", {
+      value: function(scope) {
+
+        // create new realm
+        var realm = new Realm(scope);
+
+        Object.defineProperty(realm, "Pure", {
+          value: mkPure(realm)
+        });
+
+        // return new realm
+        return realm;
+      }
+    });
+
+    //  ___                 
+    // | __|_ _ _ _ ___ _ _ 
+    // | _|| '_| '_/ _ \ '_|
+    // |___|_| |_| \___/_|  
+
+    Object.defineProperty(Pure, "Error", {
+      value: PureError
+    });
+
+    //         _                 
+    // _ _ ___| |_ _  _ _ _ _ _  
+    //| '_/ -_)  _| || | '_| ' \ 
+    //|_| \___|\__|\_,_|_| |_||_|
+
+    return Pure;
+
   }
 
-  //              _       _                  
-  // _ __ _ _ ___| |_ ___| |_ _  _ _ __  ___ 
-  //| '_ \ '_/ _ \  _/ _ \  _| || | '_ \/ -_)
-  //| .__/_| \___/\__\___/\__|\_, | .__/\___|
-  //|_|                       |__/|_|        
-
-  Object.defineProperty(Pure, "prototype", {
-    value: Object.create(Function.prototype)
-  });
-
-  //                _               _           
-  // __ ___ _ _  __| |_ _ _ _  _ __| |_ ___ _ _ 
-  /// _/ _ \ ' \(_-<  _| '_| || / _|  _/ _ \ '_|
-  //\__\___/_||_/__/\__|_|  \_,_\__|\__\___/_|  
-
-  Object.defineProperty(Pure.prototype, "constructor", {
-    value: Pure
-  });
-
-  //  __               
-  // / _|_ _ ___ _ __  
-  //|  _| '_/ _ \ '  \ 
-  //|_| |_| \___/_|_|_|
-
-  Object.defineProperty(Pure, "from", {
-    value: function(closure) { // TODO: realm
-      return recompile({}, closure);
-    }
-  });
-
-  // _    ___              
-  //(_)__| _ \_  _ _ _ ___ 
-  //| (_-<  _/ || | '_/ -_)
-  //|_/__/_|  \_,_|_| \___|
-
-  Object.defineProperty(Pure, "isPure", {
-    value: function(closure) {
-      return cache.has(closure);
-    }
-  });
-
-  // TODO
-  // make also is pure as prototype function
-
-  //                _          
-  //__ _____ _ _ __(_)___ _ _  
-  //\ V / -_) '_(_-< / _ \ ' \ 
-  // \_/\___|_| /__/_\___/_||_|
-
-  Object.defineProperty(Pure, "version", {
-    value: "Pure 0.0.1 (PoC)"
-  });
-
-  Object.defineProperty(Pure.prototype, "version", {
-    value: Pure.version
-  });
-
-  // _       ___ _       _           
-  //| |_ ___/ __| |_ _ _(_)_ _  __ _ 
-  //|  _/ _ \__ \  _| '_| | ' \/ _` |
-  // \__\___/___/\__|_| |_|_||_\__, |
-  //                           |___/ 
-
-  Object.defineProperty(Pure, "toString", {
-    value: function() {
-      return "[[Pure]]";
-    }
-  });
-
-  Object.defineProperty(Pure.prototype, "toString", {
-    value: function() {
-      return "asdfadsf"; // TODO
-    }
-  });
-
-  // ___          _       
-  //| _ \___ __ _| |_ __  
-  //|   / -_) _` | | '  \ 
-  //|_|_\___\__,_|_|_|_|_|
-
-  Object.defineProperty(Pure, "Realm", {
-    value: {} // TODO
-  });
-
-  //                 _       ___          _       
-  // __ _ _ ___ __ _| |_ ___| _ \___ __ _| |_ __  
-  /// _| '_/ -_) _` |  _/ -_)   / -_) _` | | '  \ 
-  //\__|_| \___\__,_|\__\___|_|_\___\__,_|_|_|_|_|
-
-  Object.defineProperty(Pure, "createRealm", {
-    value: function(scope) {
-
-      // create new realm
-      var realm = {};
-      // TODO, create new object rure,realm, with predefined string and prototype
-
-      // return new realm
-      return realm;
-    }
-  });
-
-  //  ___                 
-  // | __|_ _ _ _ ___ _ _ 
-  // | _|| '_| '_/ _ \ '_|
-  // |___|_| |_| \___/_|  
-
-  Object.defineProperty(Pure, "Error", {
-    value: PureError
-  });
-
-  //         _                 
-  // _ _ ___| |_ _  _ _ _ _ _  
-  //| '_/ -_)  _| || | '_| ' \ 
-  //|_| \___|\__|\_,_|_| |_||_|
-
-  return Pure;
+  return mkPure({});
 
 })();

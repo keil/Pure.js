@@ -38,3 +38,7 @@ var addone = Pure.from(function (plus, x) {
 
 print(addone(plus2, 1));
 
+
+
+
+
