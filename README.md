@@ -1,2 +1,2 @@
 # Pure.js
-Pure JavaScrip Functions
+A draft implementation of pure function in JavaScript. The implementation adapts techniques from DecentJS.
