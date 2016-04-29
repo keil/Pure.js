@@ -216,7 +216,15 @@ var Pure = Pure || (function() {
   //| |   | |_| | | |  __/ | |  | |_| | | | | (__| |_| | (_) | | | |
   //|_|    \__,_|_|  \___| |_|   \__,_|_| |_|\___|\__|_|\___/|_| |_|
 
+  /**
+   * Regerence to the global Function constructor.
+   **/
   var GlobalFunction = Function;
+
+  /**
+   * Cache. Remembers already existing pure function.
+   **/
+  var cache = new Set();   
 
   // _ _ ___ __ ___ _ __  _ __(_) |___ 
   //| '_/ -_) _/ _ \ '  \| '_ \ | / -_)
@@ -265,8 +273,10 @@ var Pure = Pure || (function() {
 
       /**
        * Return new pure function.
-       **/
-      return new Proxy(pure, handler);
+       **/    
+      var proxy = new Proxy(pure, handler);
+      cache.add(proxy);
+      return proxy;
 
     } catch(error) {
       throw new SyntaxError("Incompatible function object." + error.message);
@@ -290,20 +300,15 @@ var Pure = Pure || (function() {
     } catch(error) {
       throw new SyntaxError("Incompatible function object." + error.message);
     } 
-  }
-
-  /**
-   * Cache. Remembers already existing pure function.
-   **/
-  var cache = new Set();                                                       
+  }                                                    
 
   // ___                ___             _   _          
   //| _ \_  _ _ _ ___  | __|  _ _ _  __| |_(_)___ _ _  
   //|  _/ || | '_/ -_) | _| || | ' \/ _|  _| / _ \ ' \ 
   //|_|  \_,_|_| \___| |_| \_,_|_||_\__|\__|_\___/_||_|
 
-  function Pure(scope={}, ...parameters) {
-    return define(scope, parameters);
+  function Pure(realm={}, ...parameters) {
+    return define(realm, parameters);
   }
 
   //              _       _                  
@@ -331,7 +336,7 @@ var Pure = Pure || (function() {
   //|_| |_| \___/_|_|_|
 
   Object.defineProperty(Pure, "from", {
-    value: function(closure) {
+    value: function(closure) { // TODO: realm
       return recompile({}, closure);
     }
   });
@@ -347,6 +352,9 @@ var Pure = Pure || (function() {
     }
   });
 
+  // TODO
+  // make also is pure as prototype function
+
   //                _          
   //__ _____ _ _ __(_)___ _ _  
   //\ V / -_) '_(_-< / _ \ ' \ 
@@ -357,7 +365,7 @@ var Pure = Pure || (function() {
   });
 
   Object.defineProperty(Pure.prototype, "version", {
-    value: "Pure 0.0.1 (PoC)"
+    value: Pure.version
   });
 
   // _       ___ _       _           
@@ -367,7 +375,15 @@ var Pure = Pure || (function() {
   //                           |___/ 
 
   Object.defineProperty(Pure, "toString", {
-    value: "[[Pure]]"
+    value: function() {
+      return "[[Pure]]";
+    }
+  });
+
+  Object.defineProperty(Pure.prototype, "toString", {
+    value: function() {
+      return "asdfadsf"; // TODO
+    }
   });
 
   // ___          _       

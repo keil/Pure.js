@@ -13,4 +13,18 @@
  * http://www.informatik.uni-freiburg.de/~keilr/
  */
 
-// Example implementation of an observer membrabe.
+var plus = Pure.from(function (x, y) {
+  return (x+y);
+});
+
+print(plus instanceof Function); // true
+print(plus instanceof Pure); // true
+print(typeof plus); // function
+
+print(plus(1,2)); // 3
+print(Pure.isPure(plus));
+
+//print(Object.prototype.toString(plus));
+//print(Function.prototype.toString.call(plus));
+//print(plus.toString());
+
