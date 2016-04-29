@@ -13,32 +13,77 @@
  * http://www.informatik.uni-freiburg.de/~keilr/
  */
 
-var plus2 = function (x, y) {
-  return (x+y);
+
+
+/******************************
+ * Part I
+ ******************************/
+
+/**
+ * Unpure function.
+ **/
+var plus = function (x, y) {
+  return x+y;
 }
 
-var plus = Pure.from(function (x, y) {
-  return (x+y);
-});
+/**
+ * Create new pure from.
+ **/
+var plus1 = new Pure("x", "y", "return x+y");
 
-print(plus instanceof Function); // true
-print(plus instanceof Pure); // true
-print(typeof plus); // function
+print(plus1 instanceof Function); // true
+print(plus1 instanceof Pure); // true
+print(typeof plus1); // function
 
-print(plus(1,2)); // 3
-print(Pure.isPure(plus));
+/**
+ * Create new pure from an existing closure.
+ **/
+var plus2 = Pure.from(function(x, y) {
+  return x+y;
+})
 
-//print(Object.prototype.toString(plus));
-//print(Function.prototype.toString.call(plus));
-//print(plus.toString());
+print(plus2 instanceof Function); // true
+print(plus2 instanceof Pure); // true
+print(typeof plus2); // function
 
-var addone = Pure.from(function (plus, x) {
+
+
+/******************************
+ * Part II
+ ******************************/
+
+/**
+ * Reference plus is not available because it is not in the scope the pure function.
+ **/
+// var addOne1 = Pure.from(function (x) {
+//   return plus(x, 1);
+// });
+
+var addOne1 = Pure.from(function (plus, x) {
   return plus(x, 1);
 });
 
-print(addone(plus2, 1));
+/**
+ * Throws an error because pure functions are not allowed to call non-pure functions.
+ **/
+// print(addOne(plus, 1)); 
+
+
+print(addOne1(plus1, 1)); // 2
 
 
 
+/******************************
+ * Part III
+ ******************************/
 
+/**
+ * Creates a new realm with references that can safely be used in the pure function.
+ **/
+var realm = Pure.createRealm({plus:plus});
 
+var addOne2 = realm.Pure.from(function (x) {
+  return plus(x, 1);
+});
+
+print(addOne2(1)); // 2

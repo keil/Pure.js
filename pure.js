@@ -14,7 +14,7 @@ var Pure = Pure || (function() {
 
   function PureError (message) {
     this.name = 'Pure Error';
-    this.message = 'Pure function cannot cause observable effects.' + (message? '\n'+message: '');;
+    this.message = 'Pure function cannot cause observable effects or call unpure functions.' + (message? '\n'+message: '');;
     this.stack = (new Error()).stack;
   }
   PureError.prototype = Object.create(Error.prototype);
