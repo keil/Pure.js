@@ -276,7 +276,7 @@ var Pure = Pure || (function() {
   /**
    * Cache. Remembers already existing pure function.
    **/
-  var cache = new Set();   
+  var cache = new Map();   
 
   // _ _ ___ __ ___ _ __  _ __(_) |___ 
   //| '_/ -_) _/ _ \ '  \| '_ \ | / -_)
@@ -327,7 +327,7 @@ var Pure = Pure || (function() {
        * Return new pure function.
        **/    
       var proxy = new Proxy(pure, handler);
-      cache.add(proxy);
+      cache.set(proxy, pure);
       return proxy;
 
     } catch(error) {
@@ -365,25 +365,6 @@ var Pure = Pure || (function() {
       return define(realm, parameters);
     }
 
-    //              _       _                  
-    // _ __ _ _ ___| |_ ___| |_ _  _ _ __  ___ 
-    //| '_ \ '_/ _ \  _/ _ \  _| || | '_ \/ -_)
-    //| .__/_| \___/\__\___/\__|\_, | .__/\___|
-    //|_|                       |__/|_|        
-
-    Object.defineProperty(Pure, "prototype", {
-      value: Object.create(Function.prototype)
-    });
-
-    //                _               _           
-    // __ ___ _ _  __| |_ _ _ _  _ __| |_ ___ _ _ 
-    /// _/ _ \ ' \(_-<  _| '_| || / _|  _/ _ \ '_|
-    //\__\___/_||_/__/\__|_|  \_,_\__|\__\___/_|  
-
-    Object.defineProperty(Pure.prototype, "constructor", {
-      value: Pure
-    });
-
     //  __               
     // / _|_ _ ___ _ __  
     //|  _| '_/ _ \ '  \ 
@@ -401,8 +382,8 @@ var Pure = Pure || (function() {
     //|_/__/_|  \_,_|_| \___|
 
     Object.defineProperty(Pure, "isPure", {
-      value: function(closure) {
-        return cache.has(closure);
+      value: function(pure) {
+        return cache.has(pure);
       }
     });
 
@@ -418,9 +399,6 @@ var Pure = Pure || (function() {
       value: "Pure 0.0.1 (PoC)"
     });
 
-    Object.defineProperty(Pure.prototype, "version", {
-      value: Pure.version
-    });
 
     // _       ___ _       _           
     //| |_ ___/ __| |_ _ _(_)_ _  __ _ 
@@ -431,12 +409,6 @@ var Pure = Pure || (function() {
     Object.defineProperty(Pure, "toString", {
       value: function() {
         return "[[Pure]]";
-      }
-    });
-
-    Object.defineProperty(Pure.prototype, "toString", {
-      value: function() {
-        return "asdfadsf"; // TODO
       }
     });
 
@@ -478,15 +450,57 @@ var Pure = Pure || (function() {
       value: PureError
     });
 
+    //              _       _                  
+    // _ __ _ _ ___| |_ ___| |_ _  _ _ __  ___ 
+    //| '_ \ '_/ _ \  _/ _ \  _| || | '_ \/ -_)
+    //| .__/_| \___/\__\___/\__|\_, | .__/\___|
+    //|_|                       |__/|_|        
+
+    Object.defineProperty(Pure, "prototype", {
+      value: Object.create(Function.prototype)
+    });
+
+    Object.defineProperty(Pure.prototype, "version", {
+      value: Pure.version
+    });
+
+    Object.defineProperty(Pure.prototype, "toString", {
+      value: function() {
+
+
+
+        print("asdfasdf", Object.prototype.toString(this), cache.has(this), (this instanceof Pure));
+        return cache.get(this).toString();
+      "asdfadsf"; // TODO
+      }
+    });
+
+    Object.defineProperty(Pure.prototype, "isPure", {
+      value: function() {
+        return cache.has(this);
+      }
+    });
+
+    //                _               _           
+    // __ ___ _ _  __| |_ _ _ _  _ __| |_ ___ _ _ 
+    /// _/ _ \ ' \(_-<  _| '_| || / _|  _/ _ \ '_|
+    //\__\___/_||_/__/\__|_|  \_,_\__|\__\___/_|  
+
+    Object.defineProperty(Pure.prototype, "constructor", {
+      value: Pure
+    });
+
     //         _                 
     // _ _ ___| |_ _  _ _ _ _ _  
     //| '_/ -_)  _| || | '_| ' \ 
     //|_| \___|\__|\_,_|_| |_||_|
 
     return Pure;
-
   }
 
+  /**
+   * Create global Pure constructor on an empty realm.
+   */
   return mkPure({});
 
 })();

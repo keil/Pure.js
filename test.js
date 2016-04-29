@@ -46,6 +46,10 @@ print(plus2 instanceof Function); // true
 print(plus2 instanceof Pure); // true
 print(typeof plus2); // function
 
+print(Pure.isPure(plus)); // false
+print(Pure.isPure(plus1)); // true
+print(plus1.isPure()); // true
+
 
 
 /******************************
@@ -87,3 +91,12 @@ var addOne2 = realm.Pure.from(function (x) {
 });
 
 print(addOne2(1)); // 2
+
+print(addOne2 instanceof Pure);
+print(addOne2 instanceof realm.Pure);
+
+
+print(plus1.toString());
+print(Pure.prototype.toString.call(plus1));
+print(Function.prototype.toString.call(addOne1));
+
