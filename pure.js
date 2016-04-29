@@ -1,5 +1,12 @@
 var Pure = Pure || (function() {
 
+  //  _____                 _ _               
+  // / ____|               | | |              
+  //| (___   __ _ _ __   __| | |__   _____  __
+  // \___ \ / _` | '_ \ / _` | '_ \ / _ \ \/ /
+  // ____) | (_| | | | | (_| | |_) | (_) >  < 
+  //|_____/ \__,_|_| |_|\__,_|_.__/ \___/_/\_\
+
   //  ___                 
   // | __|_ _ _ _ ___ _ _ 
   // | _|| '_| '_/ _ \ '_|
@@ -7,7 +14,7 @@ var Pure = Pure || (function() {
 
   function PureError (message) {
     this.name = 'Pure Error';
-    this.message = message || 'Pure function cannot cause observable effects.';
+    this.message = 'Pure function cannot cause observable effects.' + (message? '\n'+message: '');;
     this.stack = (new Error()).stack;
   }
   PureError.prototype = Object.create(Error.prototype);
@@ -19,9 +26,14 @@ var Pure = Pure || (function() {
   //                |_|   
 
   /** 
-   * maps: target -> proxy
+   * proxies: proxy -> target
    **/
   var proxies = new WeakMap();
+
+  /** 
+   * targets: target -> proxy
+   **/
+  var targets = new WeakMap();
 
   /** 
    * wrap: target -> proxy
@@ -29,17 +41,19 @@ var Pure = Pure || (function() {
   function wrap(target) {
 
     /**
-     * If target is a primitive value, then return target
+     * If target is a primitive value, return target.
      **/
     if (target !== Object(target)) {
       return target;
     }
 
     /**
-     * Avoid re-wrapping of proxies/ targets
+     * Avoid re-wrapping of targets/ proxies
      **/
-    if(proxies.has(target)) {
-      return proxies.get(target);
+    if(targets.has(target)) {
+      return targets.get(target);
+    } else if (proxies.has(target)) {
+      return target;
     }
 
     var handler = new Membrane();
@@ -48,9 +62,21 @@ var Pure = Pure || (function() {
     /**
      * Stores the current proxy
      **/
-    proxies.set(target, proxy);
+    targets.set(target, proxy);
+    proxies.set(proxy, target);
 
     return proxy;
+  }
+
+  /** 
+   * wrap: target -> proxy
+   **/
+  function unwrap(proxy) {
+    if(proxies.has(proxy)) {
+      return proxies.get(proxy);
+    } else {
+      return proxy;
+    }
   }
 
   // __  __           _                      
@@ -114,8 +140,16 @@ var Pure = Pure || (function() {
      * A trap for getting property values.
      **/
     this.get = function(target, name, receiver) {
-      // TODO, check for getter ?
-      return wrap(target[name]);
+      if(name === Symbol.toPrimitive) return wrap(target[name]);
+      if(name === Symbol.iterator) return target[name];
+
+      var desc = Object.getOwnPropertyDescriptor(target, name);
+      if(desc && desc.get) {
+        var getter = wrap(desc.get);
+        return getter.apply(this);
+      } else {
+        return wrap(target[name]);
+      }
     };
 
     /** 
@@ -175,67 +209,88 @@ var Pure = Pure || (function() {
     }
   }
 
-  // _ _ ___ __ ___ _ __  _ __(_) |___ 
-  //| '_/ -_) _/ _ \ '  \| '_ \ | / -_)
-  //|_| \___\__\___/_|_|_| .__/_|_\___|
-  //                     |_|           
-
-  function recompile(closure, environment) {
-    try {
-      var scope = new Proxy(environment, {has:function() {return true;}});
-      var body = "(function() {'use strict'; return " + ("(" + closure.toString() + ")") + "})();";
-      var pure = eval("(function() { with(scope) { return " + body + " }})();");
-
-      var handler = {
-        apply: function(target, thisArg, argumentsArg) {
-          return target.apply(wrap(thisArg), wrap(argumentsArg));
-        }
-      };
-      Object.setPrototypeOf(pure, Pure.prototype);
-
-      return new Proxy(pure, handler);
-
-
-
-      Object.setPrototypeOf(pure, Pure.prototype);
-      return pure;
-      //      return wrap(pure);
-    } catch(error) {
-      print(error);
-      throw new SyntaxError("Incompatible function object.");
-    } 
-  }
-
-  function define(parameters, environment) {
-    try {
-      var scope = new Proxy(environment, {has:function() {return true;}});
-      var body = "(function() {'use strict'; return new Function(...parameters)})()";
-      var pure = eval("(function() { with(scope) { return " + body + " }})();");
-
-      var handler = {
-        apply: function(target, thisArg, argumentsArg) {
-          return target.apply(wrap(thisArg), wrap(argumentsArg));
-        }
-      };
-      Object.setPrototypeOf(pure, Pure.prototype);
-
-      return new Proxy(pure, handler);
-
-      return pure;
-      //      return wrap(pure);
-    } catch(error) {
-      throw error;
-      throw new SyntaxError("Incompatible function object.");
-    } 
-  }
-
-
   // _____                  ______                _   _             
   //|  __ \                |  ____|              | | (_)            
   //| |__) |   _ _ __ ___  | |__ _   _ _ __   ___| |_ _  ___  _ __  
   //|  ___/ | | | '__/ _ \ |  __| | | | '_ \ / __| __| |/ _ \| '_ \ 
   //| |   | |_| | | |  __/ | |  | |_| | | | | (__| |_| | (_) | | | |
   //|_|    \__,_|_|  \___| |_|   \__,_|_| |_|\___|\__|_|\___/|_| |_|
+
+  var GlobalFunction = Function;
+
+  // _ _ ___ __ ___ _ __  _ __(_) |___ 
+  //| '_/ -_) _/ _ \ '  \| '_ \ | / -_)
+  //|_| \___\__\___/_|_|_| .__/_|_\___|
+  //                     |_|           
+
+  function recompile(realm, closure) {
+    try {
+
+      /**
+       * Scope Proxy.
+       * Stopt the traversal of the scope chain lookup.
+       **/
+      var scope = new Proxy(realm, {
+        has: function() {
+          return true;
+        }
+      });
+
+      /**
+       * Function Body.
+       * Dcompiled function body.
+       **/
+      var body = "(function() {'use strict'; return " + ("(" +  GlobalFunction.prototype.toString.call(closure) + ")") + "})();";
+
+      /**
+       * New Pure Function.
+       * Function is nested in the realm.
+       **/
+      var pure = eval("(function() { with(scope) { return " + body + " }})();");
+
+      /**
+       * Application Jandler.
+       * Wraps/Uwraps arguments and return of a function call to protect arguments/.
+       **/
+      var handler = {
+        apply: function(target, thisArg, argumentsList) {
+          return unwrap(target.apply(wrap(thisArg), wrap(argumentsList)));
+        }
+      };
+
+      /**
+       * Redefines the prototype of the pure function.
+       **/
+      Object.setPrototypeOf(pure, Pure.prototype);
+
+      /**
+       * Return new pure function.
+       **/
+      return new Proxy(pure, handler);
+
+    } catch(error) {
+      throw new SyntaxError("Incompatible function object." + error.message);
+    } 
+  }
+
+  //    _      __ _          
+  // __| |___ / _(_)_ _  ___ 
+  /// _` / -_)  _| | ' \/ -_)
+  //\__,_\___|_| |_|_||_\___|
+
+  function define(scope, parameters) {
+    try {
+
+      /**
+       * Special Treatment for Function Objects.
+       * Calling JavaScrip's global Function constructor creates fresh 
+       * functions w.r.t the global scope.
+       **/
+      return recompile(scope, new Function(...parameters))
+    } catch(error) {
+      throw new SyntaxError("Incompatible function object." + error.message);
+    } 
+  }
 
   /**
    * Cache. Remembers already existing pure function.
