@@ -13,6 +13,10 @@
  * http://www.informatik.uni-freiburg.de/~keilr/
  */
 
+var plus2 = function (x, y) {
+  return (x+y);
+}
+
 var plus = Pure.from(function (x, y) {
   return (x+y);
 });
@@ -27,4 +31,10 @@ print(Pure.isPure(plus));
 //print(Object.prototype.toString(plus));
 //print(Function.prototype.toString.call(plus));
 //print(plus.toString());
+
+var addone = Pure.from(function (plus, x) {
+  return plus(x, 1);
+});
+
+print(addone(plus2, 1));
 
