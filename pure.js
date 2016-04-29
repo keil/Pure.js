@@ -185,21 +185,21 @@ var Pure = Pure || (function() {
       var scope = new Proxy(environment, {has:function() {return true;}});
       var body = "(function() {'use strict'; return " + ("(" + closure.toString() + ")") + "})();";
       var pure = eval("(function() { with(scope) { return " + body + " }})();");
-      
+
       var handler = {
         apply: function(target, thisArg, argumentsArg) {
           return target.apply(wrap(thisArg), wrap(argumentsArg));
         }
       };
       Object.setPrototypeOf(pure, Pure.prototype);
-  
+
       return new Proxy(pure, handler);
 
-      
-      
+
+
       Object.setPrototypeOf(pure, Pure.prototype);
       return pure;
-//      return wrap(pure);
+      //      return wrap(pure);
     } catch(error) {
       print(error);
       throw new SyntaxError("Incompatible function object.");
@@ -211,23 +211,36 @@ var Pure = Pure || (function() {
       var scope = new Proxy(environment, {has:function() {return true;}});
       var body = "(function() {'use strict'; return new Function(...parameters)})()";
       var pure = eval("(function() { with(scope) { return " + body + " }})();");
-      
+
       var handler = {
         apply: function(target, thisArg, argumentsArg) {
           return target.apply(wrap(thisArg), wrap(argumentsArg));
         }
       };
       Object.setPrototypeOf(pure, Pure.prototype);
-  
+
       return new Proxy(pure, handler);
 
       return pure;
-//      return wrap(pure);
+      //      return wrap(pure);
     } catch(error) {
       throw error;
       throw new SyntaxError("Incompatible function object.");
     } 
   }
+
+
+  // _____                  ______                _   _             
+  //|  __ \                |  ____|              | | (_)            
+  //| |__) |   _ _ __ ___  | |__ _   _ _ __   ___| |_ _  ___  _ __  
+  //|  ___/ | | | '__/ _ \ |  __| | | | '_ \ / __| __| |/ _ \| '_ \ 
+  //| |   | |_| | | |  __/ | |  | |_| | | | | (__| |_| | (_) | | | |
+  //|_|    \__,_|_|  \___| |_|   \__,_|_| |_|\___|\__|_|\___/|_| |_|
+
+  /**
+   * Cache. Remembers already existing pure function.
+   **/
+  var cache = new Set();                                                       
 
   // ___                ___             _   _          
   //| _ \_  _ _ _ ___  | __|  _ _ _  __| |_(_)___ _ _  
@@ -235,12 +248,27 @@ var Pure = Pure || (function() {
   //|_|  \_,_|_| \___| |_| \_,_|_||_\__|\__|_\___/_||_|
 
   function Pure(scope={}, ...parameters) {
-    //if(!(this instanceof Pure)) return new Pure(scope={}, ...parameters);
-    //else with(new Proxy(scope, {has:function() {return true;}})) return Function.call(this, ...parameters);
-    return define(parameters, scope);
+    return define(scope, parameters);
   }
-  Pure.prototype = Object.create(Function.prototype);
-  Pure.prototype.constructor = Pure;
+
+  //              _       _                  
+  // _ __ _ _ ___| |_ ___| |_ _  _ _ __  ___ 
+  //| '_ \ '_/ _ \  _/ _ \  _| || | '_ \/ -_)
+  //| .__/_| \___/\__\___/\__|\_, | .__/\___|
+  //|_|                       |__/|_|        
+
+  Object.defineProperty(Pure, "prototype", {
+    value: Object.create(Function.prototype)
+  });
+
+  //                _               _           
+  // __ ___ _ _  __| |_ _ _ _  _ __| |_ ___ _ _ 
+  /// _/ _ \ ' \(_-<  _| '_| || / _|  _/ _ \ '_|
+  //\__\___/_||_/__/\__|_|  \_,_\__|\__\___/_|  
+
+  Object.defineProperty(Observer.prototype, "constructor", {
+    value: Pure
+  });
 
   //  __               
   // / _|_ _ ___ _ __  
@@ -249,7 +277,7 @@ var Pure = Pure || (function() {
 
   Object.defineProperty(Pure, "from", {
     value: function(closure) {
-      return recompile(closure, {});
+      return recompile({}, closure);
     }
   });
 
@@ -264,21 +292,16 @@ var Pure = Pure || (function() {
     }
   });
 
-  //  ___                 
-  // | __|_ _ _ _ ___ _ _ 
-  // | _|| '_| '_/ _ \ '_|
-  // |___|_| |_| \___/_|  
-
-  Object.defineProperty(Pure, "Error", {
-    value: PureError
-  });
-
   //                _          
   //__ _____ _ _ __(_)___ _ _  
   //\ V / -_) '_(_-< / _ \ ' \ 
   // \_/\___|_| /__/_\___/_||_|
 
   Object.defineProperty(Pure, "version", {
+    value: "Pure 0.0.0 (PoC)"
+  });
+
+  Object.defineProperty(Pure.prototype, "version", {
     value: "Pure 0.0.0 (PoC)"
   });
 
@@ -291,6 +314,46 @@ var Pure = Pure || (function() {
   Object.defineProperty(Pure, "toString", {
     value: "[[Pure]]"
   });
+
+  // ___          _       
+  //| _ \___ __ _| |_ __  
+  //|   / -_) _` | | '  \ 
+  //|_|_\___\__,_|_|_|_|_|
+
+  Object.defineProperty(Pure, "Realm", {
+    value: {} // TODO
+  });
+
+  //                 _       ___          _       
+  // __ _ _ ___ __ _| |_ ___| _ \___ __ _| |_ __  
+  /// _| '_/ -_) _` |  _/ -_)   / -_) _` | | '  \ 
+  //\__|_| \___\__,_|\__\___|_|_\___\__,_|_|_|_|_|
+
+  Object.defineProperty(Pure, "createRealm", {
+    value: function() {
+
+      // create new realm
+      var realm = {};
+      // TODO, create new object rure,realm, with predefined string and prototype
+
+      // return new realm
+      return realm;
+    }
+  });
+
+  //  ___                 
+  // | __|_ _ _ _ ___ _ _ 
+  // | _|| '_| '_/ _ \ '_|
+  // |___|_| |_| \___/_|  
+
+  Object.defineProperty(Pure, "Error", {
+    value: PureError
+  });
+
+  //         _                 
+  // _ _ ___| |_ _  _ _ _ _ _  
+  //| '_/ -_)  _| || | '_| ' \ 
+  //|_| \___|\__|\_,_|_| |_||_|
 
   return Pure;
 
