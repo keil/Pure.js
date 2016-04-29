@@ -396,7 +396,7 @@ var Pure = Pure || (function() {
     // \_/\___|_| /__/_\___/_||_|
 
     Object.defineProperty(Pure, "version", {
-      value: "Pure 0.0.1 (PoC)"
+      value: "Pure 0.0.2 (PoC)"
     });
 
 
