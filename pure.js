@@ -283,7 +283,7 @@ var Pure = Pure || (function() {
   //|_| \___\__\___/_|_|_| .__/_|_\___|
   //                     |_|           
 
-  function recompile(realm, closure) {
+  function recompile(realm, closure, constructor) {
     try {
 
       /**
@@ -321,7 +321,7 @@ var Pure = Pure || (function() {
       /**
        * Redefines the prototype of the pure function.
        **/
-      Object.setPrototypeOf(pure, Pure.prototype);
+      Object.setPrototypeOf(pure, constructor.prototype);
 
       /**
        * Return new pure function.
@@ -340,7 +340,7 @@ var Pure = Pure || (function() {
   /// _` / -_)  _| | ' \/ -_)
   //\__,_\___|_| |_|_||_\___|
 
-  function define(scope, parameters) {
+  function define(scope, parameters, constructor) {
     try {
 
       /**
@@ -348,7 +348,7 @@ var Pure = Pure || (function() {
        * Calling JavaScrip's global Function constructor creates fresh 
        * functions w.r.t the global scope.
        **/
-      return recompile(scope, new Function(...parameters))
+      return recompile(scope, new Function(...parameters), constructor)
     } catch(error) {
       throw new SyntaxError("Incompatible function object." + error.message);
     } 
@@ -362,7 +362,7 @@ var Pure = Pure || (function() {
     //|_|  \_,_|_| \___| |_| \_,_|_||_\__|\__|_\___/_||_|
 
     function Pure(...parameters) {
-      return define(realm, parameters);
+      return define(realm, parameters, Pure);
     }
 
     //  __               
@@ -372,7 +372,7 @@ var Pure = Pure || (function() {
 
     Object.defineProperty(Pure, "from", {
       value: function(closure) {
-        return recompile(realm, closure);
+        return recompile(realm, closure, Pure);
       }
     });
 
