@@ -387,9 +387,6 @@ var Pure = Pure || (function() {
       }
     });
 
-    // TODO
-    // make also is pure as prototype function
-
     //                _          
     //__ _____ _ _ __(_)___ _ _  
     //\ V / -_) '_(_-< / _ \ ' \ 
@@ -466,12 +463,7 @@ var Pure = Pure || (function() {
 
     Object.defineProperty(Pure.prototype, "toString", {
       value: function() {
-
-
-
-        print("asdfasdf", Object.prototype.toString(this), cache.has(this), (this instanceof Pure));
-        return cache.get(this).toString();
-      "asdfadsf"; // TODO
+        return (cache.has(this)) ? cache.get(this).toString() : GlobalFunction.prototype.toString.call(this);
       }
     });
 

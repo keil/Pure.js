@@ -97,9 +97,3 @@ print(plus2 instanceof realm.Pure); // false
 
 print(addOne2 instanceof Pure); // false
 print(addOne2 instanceof realm.Pure); // true
-
-print(plus1.toString());
-//print(plus1.toString());
-//print(Pure.prototype.toString.call(plus1));
-//print(Function.prototype.toString.call(addOne1));
-
